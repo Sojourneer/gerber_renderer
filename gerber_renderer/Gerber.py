@@ -16,7 +16,7 @@ class Board:
         self.width = False
         self.max_height = max_height
         self.verbose = verbose
-        self.temp_path = './temp_gerber_files'
+        self.temp_path = '/tmp/temp_gerber_files'
 
         if not os.path.exists(self.temp_path):
             os.makedirs(self.temp_path)
@@ -64,7 +64,7 @@ class Board:
         # render top
         if(self.files['drill'] and self.files['outline'] and self.files['top_copper'] and self.files['top_mask']):
             if(self.verbose):
-                print('Rendring Top')
+                print('Rendering Top')
             self.draw_side(side='top', filename='top.svg')
         else:
             print('No Top Files')
@@ -113,7 +113,7 @@ class Board:
         # render top
         if(self.files['outline'] and self.files['top_copper']):
             if(self.verbose):
-                print('Rendring Top')
+                print('Rendering Top')
             # initialize svg
             self.drawing = svgwrite.Drawing(
                 filename=self.output_folder+'top.svg', size=(self.width*self.scale, self.height*self.scale), debug=False)
@@ -140,7 +140,7 @@ class Board:
         elif(self.verbose):
             print('No Bottom Files')
 
-    def render_mask(self, output, board_color='black', mask_color='gray'):
+    def render_paste(self, output, board_color='white', mask_color='gray'):
         self.board_color = board_color
         self.mask_color = mask_color
         self.drc = False
@@ -160,22 +160,22 @@ class Board:
             self.scale = self.max_height/self.height
 
         # render top
-        if(self.files['outline'] and self.files['top_mask']):
+        if(self.files['outline'] and self.files['top_paste']):
             if(self.verbose):
-                print('Rendring Top')
+                print('Rendering Top')
             # initialize svg
             self.drawing = svgwrite.Drawing(
                 filename=self.output_folder+'top.svg', size=(self.width*self.scale, self.height*self.scale), debug=False)
             # draw background rectangle
             self.drawing.add(self.drawing.rect(insert=(0, 0), size=(
                 str(self.width*self.scale), str(self.height*self.scale)), fill=self.board_color))
-            self.draw_svg(layer='top_mask', color=self.mask_color)
+            self.draw_svg(layer='top_paste', color=self.mask_color)
             self.drawing.save()
         else:
             print('No Top Files')
 
         # render bottom
-        if(self.files['outline'] and self.files['bottom_mask']):
+        if(self.files['outline'] and self.files['bottom_paste']):
             if(self.verbose):
                 print('Rendering Bottom')
             # initialize svg
@@ -184,7 +184,7 @@ class Board:
             # draw background rectangle
             self.drawing.add(self.drawing.rect(insert=(0, 0), size=(
                 str(self.width*self.scale), str(self.height*self.scale)), fill=self.board_color))
-            self.draw_svg(layer='bottom_mask', color=self.mask_color)
+            self.draw_svg(layer='bottom_paste', color=self.mask_color)
             self.drawing.save()
         elif(self.verbose):
             print('No Bottom Files')
@@ -738,8 +738,10 @@ class Board:
                 profile.append(str(float(file[file.find(
                     'X', index)+1: file.find('X', file.find(
                         'X', index)+1)]) * self.scale))
-                profile.append(str(float(file[file.find(
-                    'X', file.find('X', index)+1)+1: file.find('*', index)]) * self.scale))
+                profile.append(str(float(
+                    file[file.find(
+                    'X', file.find('X', index)+1)+1: file.find('*', index)]
+                    ) * self.scale))
             self.apertures[a_id] = (profile)
             index = file.find('ADD', index+1)
         if(a_id):
@@ -870,9 +872,11 @@ class Board:
         self.files['outline'] = ''
         self.files['top_copper'] = ''
         self.files['top_mask'] = ''
+        self.files['top_paste'] = ''
         self.files['top_silk'] = ''
         self.files['bottom_copper'] = ''
         self.files['bottom_mask'] = ''
+        self.files['bottom_paste'] = ''
         self.files['bottom_silk'] = ''
 
         # RS274X name schemes
@@ -888,6 +892,9 @@ class Board:
                 elif(not self.files['top_mask'] and filename[-3:].upper() == 'GTS'):
                     self.files['top_mask'] = open(
                         root+'/'+filename, 'r').read()
+                elif(not self.files['top_paste'] and (filename[-3:].upper() == 'GTP' or filename == 'solderpaste_top.gbr')):
+                    self.files['top_paste'] = open(
+                        root+'/'+filename, 'r').read()
                 elif(not self.files['top_silk'] and filename[-3:].upper() == 'GTO'):
                     self.files['top_silk'] = open(
                         root+'/'+filename, 'r').read()
@@ -897,6 +904,9 @@ class Board:
                 elif(not self.files['bottom_mask'] and filename[-3:].upper() == 'GBS'):
                     self.files['bottom_mask'] = open(
                         root+'/'+filename, 'r').read()
+                elif(not self.files['bottom_paste'] and (filename[-3:].upper() == 'GTP' or filename == 'solderpaste_bottom.gbr')):
+                    self.files['bottom_paste'] = open(
+                        root+'/'+filename, 'r').read()
                 elif(not self.files['bottom_silk'] and filename[-3:].upper() == 'GBO'):
                     self.files['bottom_silk'] = open(
                         root+'/'+filename, 'r').read()
@@ -904,6 +914,7 @@ class Board:
                     temp = open(root+'/'+filename, 'r').read()
                     self.infer_filetype(temp, filename)
                 else:
+                    print("Unidentified file",filename)
                     unidentified_files += 1
 
         shutil.rmtree(self.temp_path)

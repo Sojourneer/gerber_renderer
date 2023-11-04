@@ -140,6 +140,55 @@ class Board:
         elif(self.verbose):
             print('No Bottom Files')
 
+    def render_mask(self, output, board_color='black', mask_color='gray'):
+        self.board_color = board_color
+        self.mask_color = mask_color
+        self.drc = False
+
+        # setup output path
+        self.output_folder = output
+        if(self.output_folder[-1] == '/'):
+            self.output_folder = self.output_folder[:-1]
+        if not os.path.exists(self.output_folder):
+            os.makedirs(self.output_folder)
+        self.output_folder += '/'
+
+        self.copper_bool = True
+
+        if(not self.width):
+            self.set_dimensions()
+            self.scale = self.max_height/self.height
+
+        # render top
+        if(self.files['outline'] and self.files['top_mask']):
+            if(self.verbose):
+                print('Rendring Top')
+            # initialize svg
+            self.drawing = svgwrite.Drawing(
+                filename=self.output_folder+'top.svg', size=(self.width*self.scale, self.height*self.scale), debug=False)
+            # draw background rectangle
+            self.drawing.add(self.drawing.rect(insert=(0, 0), size=(
+                str(self.width*self.scale), str(self.height*self.scale)), fill=self.board_color))
+            self.draw_svg(layer='top_mask', color=self.mask_color)
+            self.drawing.save()
+        else:
+            print('No Top Files')
+
+        # render bottom
+        if(self.files['outline'] and self.files['bottom_mask']):
+            if(self.verbose):
+                print('Rendering Bottom')
+            # initialize svg
+            self.drawing = svgwrite.Drawing(
+                filename=self.output_folder+'bottom.svg', size=(self.width*self.scale, self.height*self.scale), debug=False)
+            # draw background rectangle
+            self.drawing.add(self.drawing.rect(insert=(0, 0), size=(
+                str(self.width*self.scale), str(self.height*self.scale)), fill=self.board_color))
+            self.draw_svg(layer='bottom_mask', color=self.mask_color)
+            self.drawing.save()
+        elif(self.verbose):
+            print('No Bottom Files')
+
     def draw_side(self, side, filename):
         self.copper_bool = False
 

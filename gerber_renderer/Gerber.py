@@ -13,6 +13,7 @@ from reportlab.pdfgen import canvas
 
 class Board:
     def __init__(self, file, max_height=500, verbose=False):
+        self.file = file
         self.width = False
         self.max_height = max_height
         self.verbose = verbose
@@ -167,7 +168,8 @@ class Board:
             self.drawing = svgwrite.Drawing(
                 filename=self.output_folder+'top.svg', size=(self.width*self.scale, self.height*self.scale), debug=False)
             self.drawing['transform'] = " scale(1,-1) translate(0, {})".format(-self.height*self.scale)
-            
+            self.drawing["gerber_file"] = self.file
+
             # draw background rectangle
             self.drawing.add(self.drawing.rect(insert=(0, 0), size=(
                 str(self.width*self.scale), str(self.height*self.scale)), fill=self.board_color))
@@ -184,6 +186,8 @@ class Board:
             self.drawing = svgwrite.Drawing(
                 filename=self.output_folder+'bottom.svg', size=(self.width*self.scale, self.height*self.scale), debug=False)
             self.drawing['transform'] = " scale(1,-1) translate(0, {})".format(-self.height*self.scale)
+            self.drawing["gerber_file"] = self.file
+
             # draw background rectangle
             self.drawing.add(self.drawing.rect(insert=(0, 0), size=(
                 str(self.width*self.scale), str(self.height*self.scale)), fill=self.board_color))

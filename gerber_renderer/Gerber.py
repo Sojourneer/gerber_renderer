@@ -166,6 +166,8 @@ class Board:
             # initialize svg
             self.drawing = svgwrite.Drawing(
                 filename=self.output_folder+'top.svg', size=(self.width*self.scale, self.height*self.scale), debug=False)
+            self.drawing['transform'] = " scale(1,-1) translate(0, {})".format(-self.height*self.scale)
+            
             # draw background rectangle
             self.drawing.add(self.drawing.rect(insert=(0, 0), size=(
                 str(self.width*self.scale), str(self.height*self.scale)), fill=self.board_color))
@@ -181,6 +183,7 @@ class Board:
             # initialize svg
             self.drawing = svgwrite.Drawing(
                 filename=self.output_folder+'bottom.svg', size=(self.width*self.scale, self.height*self.scale), debug=False)
+            self.drawing['transform'] = " scale(1,-1) translate(0, {})".format(-self.height*self.scale)
             # draw background rectangle
             self.drawing.add(self.drawing.rect(insert=(0, 0), size=(
                 str(self.width*self.scale), str(self.height*self.scale)), fill=self.board_color))
